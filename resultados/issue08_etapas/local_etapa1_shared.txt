@@ -1,0 +1,6 @@
+Etapa 1 (so shared memory, THREADS=1024, dimensoes em tempo de execucao)
+OK: saida identica a referencia (ref_output.txt)
+Binario: profiling/etapa1 | Execucoes: 5 | OMP_NUM_THREADS=padrao
+Tempo de treino: media 1.0295 s | dp 0.0005 s | min 1.0287 s | max 1.0303 s
+Tempo de leitura: media 0.0112 s | dp 0.0033 s | min 0.0075 s | max 0.0158 s
+Tempo total: media 1.1893 s | dp 0.0083 s | min 1.1803 s | max 1.2012 s

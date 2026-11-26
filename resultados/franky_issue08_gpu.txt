@@ -1,0 +1,50 @@
+===== AMBIENTE =====
+Host:       compute22
+Commit:     v0.6-kernel-persistente-dirty
+Model name:                           Intel(R) Core(TM) i9-14900
+GPU:        NVIDIA RTX A1000, 8188 MiB, 570.124.06, 8.6
+CUDA:       Build cuda_12.8.r12.8/compiler.35583870_0
+Flags:      NVCCFLAGS ?= -O3 -arch=sm_86 --fmad=false -lineinfo -std=c++17 -Xcompiler -fopenmp,-O3 
+SLURM:      job 30994 | particao sunny_gpu | nos compute22
+
+===== VALIDACAO =====
+OK: saida identica a referencia (ref_output.txt)
+
+===== BENCHMARK (N=5) =====
+Binario: ./barenn_cuda | Execucoes: 5 | OMP_NUM_THREADS=padrao
+Tempo de treino: media 0.5260 s | dp 0.0008 s | min 0.5249 s | max 0.5270 s
+Tempo de leitura: media 0.0041 s | dp 0.0003 s | min 0.0038 s | max 0.0046 s
+Tempo total: media 2.1403 s | dp 0.0139 s | min 2.1188 s | max 2.1541 s
+
+===== NSIGHT SYSTEMS =====
+Generating SQLite file profiling/barenn_cuda_30994.sqlite from profiling/barenn_cuda_30994.nsys-rep
+Processing [profiling/barenn_cuda_30994.sqlite] with [/opt/ohpc/pub/spack/opt/spack/linux-skylake/cuda-12.8.1-hk7c4l6fpeucmtbivmr7kn73dnkarzyt/nsight-systems-2024.6.2/host-linux-x64/reports/cuda_gpu_kern_sum.py]... 
+
+ ** CUDA GPU Kernel Summary (cuda_gpu_kern_sum):
+
+ Time (%)  Total Time (ns)  Instances    Avg (ns)       Med (ns)      Min (ns)     Max (ns)    StdDev (ns)                                                  Name                                                
+ --------  ---------------  ---------  -------------  -------------  -----------  -----------  -----------  ----------------------------------------------------------------------------------------------------
+    100.0      514,213,714          1  514,213,714.0  514,213,714.0  514,213,714  514,213,714          0.0  <unnamed>::k_treino(<unnamed>::CamadaDev, <unnamed>::CamadaDev, <unnamed>::CamadaDev, const float *…
+
+Processing [profiling/barenn_cuda_30994.sqlite] with [/opt/ohpc/pub/spack/opt/spack/linux-skylake/cuda-12.8.1-hk7c4l6fpeucmtbivmr7kn73dnkarzyt/nsight-systems-2024.6.2/host-linux-x64/reports/cuda_gpu_mem_time_sum.py]... 
+
+ ** CUDA GPU MemOps Summary (by Time) (cuda_gpu_mem_time_sum):
+
+ Time (%)  Total Time (ns)  Count  Avg (ns)  Med (ns)  Min (ns)  Max (ns)  StdDev (ns)           Operation          
+ --------  ---------------  -----  --------  --------  --------  --------  -----------  ----------------------------
+     92.6           83,198      8  10,399.8     480.0       384    78,527     27,530.8  [CUDA memcpy Host-to-Device]
+      7.4            6,624      7     946.3     832.0       800     1,216        179.0  [CUDA memcpy Device-to-Host]
+
+Processing [profiling/barenn_cuda_30994.sqlite] with [/opt/ohpc/pub/spack/opt/spack/linux-skylake/cuda-12.8.1-hk7c4l6fpeucmtbivmr7kn73dnkarzyt/nsight-systems-2024.6.2/host-linux-x64/reports/cuda_api_sum.py]... 
+
+ ** CUDA API Summary (cuda_api_sum):
+
+ Time (%)  Total Time (ns)  Num Calls    Avg (ns)       Med (ns)      Min (ns)     Max (ns)    StdDev (ns)            Name         
+ --------  ---------------  ---------  -------------  -------------  -----------  -----------  ------------  ----------------------
+     88.3      514,215,475          1  514,215,475.0  514,215,475.0  514,215,475  514,215,475           0.0  cudaDeviceSynchronize 
+     11.6       67,430,917         22    3,065,041.7        1,108.5          830   67,359,036  14,360,268.5  cudaFree              
+      0.0          181,479         15       12,098.6        4,917.0        1,353       82,782      21,264.6  cudaMemcpy            
+      0.0          134,623          1      134,623.0      134,623.0      134,623      134,623           0.0  cudaLaunchKernel      
+      0.0           83,625         21        3,982.1        1,312.0          987       54,277      11,531.9  cudaMalloc            
+      0.0              766          1          766.0          766.0          766          766           0.0  cuModuleGetLoadingMode
+
