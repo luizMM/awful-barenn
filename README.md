@@ -1,4 +1,69 @@
-# Projeto Barenn: O Legado, a Sobrevivência e o Salto para a GPU
+# Barenn: relatório de otimização (CPU → CUDA)
+
+Sumário executivo da APS2. Cada degrau de desempenho é um **bloco lógico**: Issue (diagnóstico, hipótese, métrica base) → branch → Pull Request → tag anotada → fechamento da Issue com a discussão. As saídas completas das medições estão em [`resultados/`](resultados/).
+
+**Critério de corretude:** todas as versões produzem saída **bit a bit idêntica** à do código legado (`make validate` / `make validate-cuda`, comparando com [`ref_output.txt`](ref_output.txt)): acurácia 95,5% (1717/1797), perda média de teste 0,0432.
+
+## Tabela consolidada
+
+Tempo de treino (51 épocas, forward + perda + backward), média de 5 a 10 execuções.
+
+| Versão | Tag | Notebook | Franky | Speedup Notebook | Speedup Franky |
+|:--|:--|--:|--:|--:|--:|
+| **Baseline Legado** | [`v0.0-baseline`](https://github.com/luizMM/awful-barenn/tree/v0.0-baseline) | 0,866 s | 0,471 s | 1,0× | 1,0× |
+| **CPU Otimizada** | [`v0.4-openmp-leitura`](https://github.com/luizMM/awful-barenn/tree/v0.4-openmp-leitura) | 0,182 s | 0,130 s | **4,8×** | **3,6×** |
+| **CUDA Inicial** | [`v0.5-cuda-inicial`](https://github.com/luizMM/awful-barenn/tree/v0.5-cuda-inicial) | 4,19 s | 3,92 s | 0,21× | 0,12× |
+| **CUDA Otimizado** | [`v0.7-cuda-shared-unroll`](https://github.com/luizMM/awful-barenn/tree/v0.7-cuda-shared-unroll) | 0,545 s | 0,526 s | 1,6× | 0,90× |
+
+## Todas as versões
+
+| # | Bloco lógico | Issue | PR | Tag | Notebook | Franky |
+|:--|:--|:--|:--|:--|--:|--:|
+| 1 | Baseline reprodutível e profiling inicial | [#1](https://github.com/luizMM/awful-barenn/issues/1) | [#2](https://github.com/luizMM/awful-barenn/pull/2) | [`v0.0-baseline`](https://github.com/luizMM/awful-barenn/tree/v0.0-baseline) | 0,866 s | 0,471 s |
+| 2 | Remove o `grad_in` descartado da camada 1 | [#3](https://github.com/luizMM/awful-barenn/issues/3) | [#4](https://github.com/luizMM/awful-barenn/pull/4) | [`v0.1-grad-in-morto`](https://github.com/luizMM/awful-barenn/tree/v0.1-grad-in-morto) | 0,719 s | 0,367 s |
+| 3 | Pesos contíguos e buffers pré-alocados | [#5](https://github.com/luizMM/awful-barenn/issues/5) | [#6](https://github.com/luizMM/awful-barenn/pull/6) | [`v0.2-layout-contiguo`](https://github.com/luizMM/awful-barenn/tree/v0.2-layout-contiguo) | 0,642 s | 0,424 s ¹ |
+| 4 | SIMD AVX2 + pesos transpostos | [#7](https://github.com/luizMM/awful-barenn/issues/7) | [#8](https://github.com/luizMM/awful-barenn/pull/8) | [`v0.3-simd-avx2`](https://github.com/luizMM/awful-barenn/tree/v0.3-simd-avx2) | 0,184 s | 0,133 s |
+| 5 | OpenMP na leitura e Lei de Amdahl | [#9](https://github.com/luizMM/awful-barenn/issues/9) | [#10](https://github.com/luizMM/awful-barenn/pull/10) | [`v0.4-openmp-leitura`](https://github.com/luizMM/awful-barenn/tree/v0.4-openmp-leitura) | 0,182 s ² | 0,130 s ² |
+| 6 | Porting inicial para CUDA | [#11](https://github.com/luizMM/awful-barenn/issues/11) | [#12](https://github.com/luizMM/awful-barenn/pull/12) | [`v0.5-cuda-inicial`](https://github.com/luizMM/awful-barenn/tree/v0.5-cuda-inicial) | 4,19 s | 3,92 s |
+| 7 | Kernel persistente (1 lançamento) | [#13](https://github.com/luizMM/awful-barenn/issues/13) | [#14](https://github.com/luizMM/awful-barenn/pull/14) | [`v0.6-kernel-persistente`](https://github.com/luizMM/awful-barenn/tree/v0.6-kernel-persistente) | 1,09 s | 0,96 s |
+| 8 | Shared memory + dimensões em tempo de compilação | [#15](https://github.com/luizMM/awful-barenn/issues/15) | [#16](https://github.com/luizMM/awful-barenn/pull/16) | [`v0.7-cuda-shared-unroll`](https://github.com/luizMM/awful-barenn/tree/v0.7-cuda-shared-unroll) | 0,545 s | 0,526 s |
+
+¹ Regressão no Franky, investigada na Issue #5: sensibilidade ao layout de memória (deslocar um buffer em 32 bytes leva a 0,334 s). Ela desaparece na v0.3.
+² O ganho da v0.4 é no tempo **total** (leitura em paralelo): 0,218 → 0,189 s no notebook e 0,152 → 0,135 s no Franky, com 8 threads, próximo do limite de Amdahl (1,19× e 1,17×). O treino é sequencial.
+
+## Conclusões
+
+- **CPU (4,8× no notebook e 3,6× no Franky):** o ganho veio de remover trabalho inútil, eliminar alocações e, principalmente, de **SIMD sem reordenar somas** (pesos transpostos, Issue #7). O treino não paraleliza entre núcleos: o SGD por amostra é sequencial e cada amostra leva ~1 µs, menos que o custo de uma região OpenMP (Issue #9).
+- **GPU:** o porting direto ficou 23–30× mais lento que a CPU por causa de 2,34 milhões de lançamentos de kernel (Issue #11). O kernel persistente reduziu para 1 lançamento (Issue #13), e shared memory + laços desenrolados encurtaram o caminho crítico serial de cada amostra (Issue #15), num total de **7,5–7,7× sobre a CUDA inicial**.
+- **Por que a GPU não supera a CPU:** com SGD por amostra só um bloco (1 dos 16/18 SMs) pode trabalhar, e o caminho crítico é uma cadeia serial de somas em ordem fixa (exigida pela saída bit a bit). O Nsight Compute mostra 61% dos ciclos em espera de barreira e throughput de SM < 2%. Superar a CPU exigiria paralelismo entre amostras (mini-batch), o que muda o algoritmo e foi deliberadamente não feito, para preservar o SGD exato.
+
+## Ambientes de teste
+
+| | Notebook | Franky (cluster) |
+|:--|:--|:--|
+| CPU | AMD Ryzen 7 5800H (Zen 3, 8C/16T) | Intel i7-13700T (nós CPU, `sunny_cpu`), i9-14900 (nós GPU) |
+| GPU | NVIDIA GeForce RTX 3050 Laptop (Ampere, 16 SMs, 4 GB) | NVIDIA RTX A1000 (Ampere, 18 SMs, 8 GB), `sunny_gpu` |
+| Compiladores | g++ 13.3, CUDA 12.0 | g++ 14.2, CUDA 12.8 |
+| Flags CPU | `-O3 -march=x86-64-v3 -ffp-contract=off -fopenmp` (a partir da v0.3) | idem |
+| Flags GPU | `-O3 -arch=sm_86 --fmad=false` | idem |
+| Profilers | callgrind/cachegrind, Nsight Systems, Nsight Compute (com `sudo`) | Nsight Systems (contadores da GPU restritos) |
+
+## Como reproduzir
+
+```bash
+git checkout <tag>
+make validate && make bench        # CPU
+make validate-cuda && make bench-cuda && make nsys   # GPU (a partir da v0.5)
+make callgrind                     # profiling da CPU
+./franky_submit.sh                 # Franky, CPU (no nó de login)
+./franky_submit_gpu.sh             # Franky, GPU (a partir da v0.5)
+```
+
+---
+
+# Enunciado original
+
+## Projeto Barenn: O Legado, a Sobrevivência e o Salto para a GPU
 
 Era uma segunda-feira aparentemente tranquila quando a demanda chegou à sua mesa. A liderança técnica se aproximou com um sorriso contido e soltou aquela frase clássica que faz qualquer engenheiro gelar por dentro:
 
