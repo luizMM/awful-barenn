@@ -1,0 +1,42 @@
+===== AMBIENTE =====
+Host:       luizmmb-Legion-5-15ACH6
+Commit:     v0.5-cuda-inicial-5-g8992fc9-dirty
+CPU:        AMD Ryzen 7 5800H with Radeon Graphics
+GPU:        NVIDIA GeForce RTX 3050 Laptop GPU, 4096 MiB, 580.173.02, 8.6
+CUDA:       Build cuda_12.0.r12.0/compiler.32267302_0
+Flags:      NVCCFLAGS ?= -O3 -arch=sm_86 --fmad=false -lineinfo -std=c++17 -Xcompiler -fopenmp,-O3  THREADS=1024
+
+===== VALIDACAO =====
+OK: saida identica a referencia (ref_output.txt)
+
+===== BENCHMARK (N=5) =====
+Binario: ./barenn_cuda | Execucoes: 5 | OMP_NUM_THREADS=padrao
+Tempo de treino: media 1.0900 s | dp 0.0021 s | min 1.0866 s | max 1.0923 s
+Tempo de leitura: media 0.0172 s | dp 0.0048 s | min 0.0113 s | max 0.0218 s
+Tempo total: media 1.2993 s | dp 0.0042 s | min 1.2936 s | max 1.3052 s
+
+===== NSIGHT SYSTEMS =====
+WARNING: CPU IP/backtrace sampling not supported, disabling.
+Try the 'nsys status --environment' command to learn more.
+WARNING: CPU context switch tracing not supported, disabling.
+Try the 'nsys status --environment' command to learn more.
+Importer error status: The importer binary and its dependencies were not found.
+Unable to retrieve the importer version: skipping importation of the QDSTRM file.
+ ** CUDA GPU Kernel Summary (gpukernsum):
+ Time (%)  Total Time (ns)  Instances     Avg (ns)         Med (ns)        Min (ns)       Max (ns)     StdDev (ns)     GridXYZ         BlockXYZ                                                     Name                                                
+ --------  ---------------  ---------  ---------------  ---------------  -------------  -------------  -----------  --------------  --------------  ----------------------------------------------------------------------------------------------------
+    100,0    1.072.509.276          1  1.072.509.276,0  1.072.509.276,0  1.072.509.276  1.072.509.276          0,0     1    1    1  1024    1    1  <unnamed>::k_treino(<unnamed>::CamadaDev, <unnamed>::CamadaDev, <unnamed>::CamadaDev, const float *…
+ ** GPU MemOps Summary (by Time) (gpumemtimesum):
+ Time (%)  Total Time (ns)  Count  Avg (ns)  Med (ns)  Min (ns)  Max (ns)  StdDev (ns)      Operation     
+ --------  ---------------  -----  --------  --------  --------  --------  -----------  ------------------
+     94,0          156.356      8  19.544,0     832,0       736   149.316     52.437,0  [CUDA memcpy HtoD]
+      5,0            9.729      7   1.389,0     992,0       928     2.112        533,0  [CUDA memcpy DtoH]
+ ** CUDA API Summary (cudaapisum):
+ Time (%)  Total Time (ns)  Num Calls     Avg (ns)         Med (ns)        Min (ns)       Max (ns)     StdDev (ns)            Name         
+ --------  ---------------  ---------  ---------------  ---------------  -------------  -------------  ------------  ----------------------
+     88,0    1.072.518.429          1  1.072.518.429,0  1.072.518.429,0  1.072.518.429  1.072.518.429           0,0  cudaDeviceSynchronize 
+     11,0      136.528.801         22      6.205.854,0          3.876,0          2.863    136.346.929  29.067.423,0  cudaFree              
+      0,0          462.359         15         30.823,0         11.524,0          7.264        160.708      41.837,0  cudaMemcpy            
+      0,0          319.817         21         15.229,0          4.750,0          4.260        221.192      47.199,0  cudaMalloc            
+      0,0          191.299          1        191.299,0        191.299,0        191.299        191.299           0,0  cudaLaunchKernel      
+      0,0            2.794          1          2.794,0          2.794,0          2.794          2.794           0,0  cuModuleGetLoadingMode
