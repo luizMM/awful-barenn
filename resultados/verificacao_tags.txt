@@ -1,0 +1,27 @@
+Verificacao de reprodutibilidade: cada tag foi exportada do GitHub (git archive), compilada com o Makefile da propria tag, validada contra ref_output.txt e medida.
+Tempo = media do tempo de treino (CPU: 5 execucoes, OMP_NUM_THREADS=8; GPU: 3 execucoes).
+
+Verificacao das tags no notebook (2026-11-25T21:44:49-03:00)
+v0.0-baseline | 58701a2 | CPU OK 0.9287 s | (sem CUDA)
+v0.1-grad-in-morto | a89c198 | CPU OK 0.7123 s | (sem CUDA)
+v0.2-layout-contiguo | b47c948 | CPU OK 0.6337 s | (sem CUDA)
+v0.3-simd-avx2 | f155aa5 | CPU OK 0.1818 s | (sem CUDA)
+v0.4-openmp-leitura | f350438 | CPU OK 0.1866 s | (sem CUDA)
+v0.5-cuda-inicial | 8992fc9 | CPU OK 0.1847 s | GPU OK 4.1612 s
+v0.6-kernel-persistente | 4ce1756 | CPU OK 0.1836 s | GPU OK 1.0911 s
+v0.7-cuda-shared-unroll | 9fb8955 | CPU OK 0.1850 s | GPU OK 0.5446 s
+
+Verificacao das tags no Franky (cpu) | compute10 | 2026-11-25T19:47:13-05:00
+v0.0-baseline | CPU OK 0.4606 s
+v0.1-grad-in-morto | CPU OK 0.3609 s
+v0.2-layout-contiguo | CPU OK 0.4031 s
+v0.3-simd-avx2 | CPU OK 0.1338 s
+v0.4-openmp-leitura | CPU OK 0.1304 s
+v0.5-cuda-inicial | CPU OK 0.1303 s
+v0.6-kernel-persistente | CPU OK 0.1307 s
+v0.7-cuda-shared-unroll | CPU OK 0.1301 s
+
+Verificacao das tags no Franky (gpu) | compute20 | 2026-11-25T19:47:13-05:00
+v0.5-cuda-inicial | GPU OK 3.9360 s
+v0.6-kernel-persistente | GPU OK 0.9530 s
+v0.7-cuda-shared-unroll | GPU OK 0.5211 s
