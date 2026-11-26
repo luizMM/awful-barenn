@@ -1,0 +1,7 @@
+Host: compute20 | GPU: NVIDIA RTX A1000
+THREADS=32 validacao=OK Tempo de treino: media 1.9236 s | dp 0.0004 s | min 1.9229 s | max 1.9240 s
+THREADS=64 validacao=OK Tempo de treino: media 1.4610 s | dp 0.0102 s | min 1.4554 s | max 1.4814 s
+THREADS=128 validacao=OK Tempo de treino: media 1.2471 s | dp 0.0021 s | min 1.2443 s | max 1.2491 s
+THREADS=256 validacao=OK Tempo de treino: media 1.1393 s | dp 0.0007 s | min 1.1387 s | max 1.1406 s
+THREADS=512 validacao=OK Tempo de treino: media 1.1251 s | dp 0.0003 s | min 1.1246 s | max 1.1254 s
+THREADS=1024 validacao=OK Tempo de treino: media 0.9564 s | dp 0.0003 s | min 0.9559 s | max 0.9566 s
