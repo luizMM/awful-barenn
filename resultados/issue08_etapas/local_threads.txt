@@ -1,0 +1,6 @@
+THREADS=32 validacao=OK Tempo de treino: media 1.0809 s | dp 0.0008 s | min 1.0801 s | max 1.0825 s
+THREADS=64 validacao=OK Tempo de treino: media 0.7734 s | dp 0.0009 s | min 0.7724 s | max 0.7749 s
+THREADS=128 validacao=OK Tempo de treino: media 0.6615 s | dp 0.0010 s | min 0.6605 s | max 0.6628 s
+THREADS=256 validacao=OK Tempo de treino: media 0.5567 s | dp 0.0013 s | min 0.5551 s | max 0.5583 s
+THREADS=512 validacao=OK Tempo de treino: media 0.5486 s | dp 0.0012 s | min 0.5473 s | max 0.5504 s
+THREADS=1024 validacao=OK Tempo de treino: media 0.7830 s | dp 0.0027 s | min 0.7812 s | max 0.7883 s

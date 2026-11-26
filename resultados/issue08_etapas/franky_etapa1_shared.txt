@@ -1,0 +1,6 @@
+Etapa 1 (so shared memory, THREADS=1024, dimensoes em tempo de execucao) | Franky, particao sunny_gpu (RTX A1000)
+OK: saida identica a referencia (ref_output.txt)
+Binario: profiling/etapa1 | Execucoes: 5 | OMP_NUM_THREADS=padrao
+Tempo de treino: media 0.8805 s | dp 0.0013 s | min 0.8784 s | max 0.8817 s
+Tempo de leitura: media 0.0232 s | dp 0.0001 s | min 0.0231 s | max 0.0234 s
+Tempo total: media 2.5611 s | dp 0.0023 s | min 2.5583 s | max 2.5646 s

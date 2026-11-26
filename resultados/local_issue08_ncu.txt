@@ -1,0 +1,162 @@
+Nsight Compute 2022.4 (pacote Ubuntu), executado com sudo (contadores restritos a administradores). O ncu fixa o clock da GPU no valor base, por isso a duracao aqui e maior que no bench.
+
+==PROF== Connected to process (barenn_cuda)
+==PROF== Profiling "k_treino" - 0: 0%....50%....100% - 14 passes
+==PROF== Disconnected from process 65578
+TREINO | 3823 imagens
+Epoca  1/51 | perda media 0.4129
+Epoca  6/51 | perda media 0.0442
+Epoca 11/51 | perda media 0.0312
+Epoca 16/51 | perda media 0.0261
+Epoca 21/51 | perda media 0.0227
+Epoca 26/51 | perda media 0.0204
+Epoca 31/51 | perda media 0.0184
+Epoca 36/51 | perda media 0.0169
+Epoca 41/51 | perda media 0.0155
+Epoca 46/51 | perda media 0.0145
+Epoca 51/51 | perda media 0.0135
+Tempo de treino 11.1100 s
+Tempo de leitura 0.0113 s
+
+AVALIACAO FINAL
+Acuracia 95.5% | 1717 acertos em 1797 imagens
+Perda media 0.0432
+
+ALGUMAS INFERENCIAS
+Esperado  Previsto
+       0         0
+       1         1
+       2         8
+       3         3
+       5         9
+       7         9
+
+CONFUSOES MAIS FREQUENTES
+Esperado  Previsto  Ocorrencias
+       7         9            9
+       8         1            6
+       3         2            5
+Tempo total 11.5593 s
+[65578] barenn_cuda@127.0.0.1
+  <unnamed>::k_treino(<unnamed>::CamadaDev, <unnamed>::CamadaDev, <unnamed>::CamadaDev, const float *, const int *, int, int, float, double *) (1, 1, 1)x(512, 1, 1), Context 1, Stream 7, Device 0, CC 8.6
+    Section: GPU Speed Of Light Throughput
+    ----------------------- ------------- -------------
+    Metric Name               Metric Unit  Metric Value
+    ----------------------- ------------- -------------
+    DRAM Frequency          cycle/nsecond          5,50
+    SM Frequency            cycle/nsecond          1,24
+    Elapsed Cycles                  cycle   931.085.946
+    Memory Throughput                   %          1,70
+    DRAM Throughput                     %          0,58
+    Duration                      msecond        751,81
+    L1/TEX Cache Throughput             %         27,16
+    L2 Cache Throughput                 %          0,25
+    SM Active Cycles                cycle 58.146.631,81
+    Compute (SM) Throughput             %          1,70
+    ----------------------- ------------- -------------
+
+    WRN   This kernel grid is too small to fill the available resources on this device, resulting in only 0.1 full      
+          waves across all SMs. Look at Launch Statistics for more details.                                             
+
+    Section: Memory Workload Analysis
+    --------------------------- ------------ ------------
+    Metric Name                  Metric Unit Metric Value
+    --------------------------- ------------ ------------
+    Memory Throughput           Gbyte/second         1,01
+    Mem Busy                               %         0,97
+    Max Bandwidth                          %         1,70
+    L1/TEX Hit Rate                        %        93,70
+    L2 Compression Success Rate            %            0
+    L2 Compression Ratio                                0
+    L2 Hit Rate                            %         9,73
+    Mem Pipes Busy                         %         1,70
+    --------------------------- ------------ ------------
+
+    Section: Scheduler Statistics
+    ---------------------------- ----------- ------------
+    Metric Name                  Metric Unit Metric Value
+    ---------------------------- ----------- ------------
+    One or More Eligible                   %        19,37
+    Issued Warp Per Scheduler                        0,19
+    No Eligible                            %        80,63
+    Active Warps Per Scheduler          warp         4,00
+    Eligible Warps Per Scheduler        warp         0,31
+    ---------------------------- ----------- ------------
+
+    WRN   Every scheduler is capable of issuing one instruction per cycle, but for this kernel each scheduler only      
+          issues an instruction every 5.2 cycles. This might leave hardware resources underutilized and may lead to     
+          less optimal performance. Out of the maximum of 12 warps per scheduler, this kernel allocates an average of   
+          4.00 active warps per scheduler, but only an average of 0.31 warps were eligible per cycle. Eligible warps    
+          are the subset of active warps that are ready to issue their next instruction. Every cycle with no eligible   
+          warp results in no instruction being issued and the issue slot remains unused. To increase the number of      
+          eligible warps, avoid possible load imbalances due to highly different execution durations per warp.          
+          Reducing stalls indicated on the Warp State Statistics and Source Counters sections can help, too.            
+    ----- --------------------------------------------------------------------------------------------------------------
+    WRN   The 4.00 theoretical warps per scheduler this kernel can issue according to its occupancy are below the       
+          hardware maximum of 12. Use the Occupancy section to identify what limits this kernel's theoretical           
+          occupancy.                                                                                                    
+
+    Section: Warp State Statistics
+    ---------------------------------------- ----------- ------------
+    Metric Name                              Metric Unit Metric Value
+    ---------------------------------------- ----------- ------------
+    Warp Cycles Per Issued Instruction             cycle        20,66
+    Warp Cycles Per Executed Instruction           cycle        20,66
+    Avg. Active Threads Per Warp                                29,45
+    Avg. Not Predicated Off Threads Per Warp                    28,41
+    ---------------------------------------- ----------- ------------
+
+    WRN   On average, each warp of this kernel spends 12.6 cycles being stalled waiting for sibling warps at a CTA      
+          barrier. This represents about 60.8% of the total average of 20.7 cycles between issuing two instructions. A  
+          high number of warps waiting at a barrier is commonly caused by diverging code paths before a barrier that    
+          causes some warps to wait a long time until other warps reach the synchronization point. Whenever possible    
+          try to divide up the work into blocks of uniform workloads. Use the Source View's sampling columns to         
+          identify which barrier instruction causes the most stalls and optimize the code executed before that          
+          synchronization point first.                                                                                  
+    ----- --------------------------------------------------------------------------------------------------------------
+    INF   Check the Source Counters section for the top stall locations in your source based on sampling data. The      
+          Kernel Profiling Guide (https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#sampling) provides   
+          more details on each stall reason.                                                                            
+
+    Section: Launch Statistics
+    -------------------------------- --------------- ---------------
+    Metric Name                          Metric Unit    Metric Value
+    -------------------------------- --------------- ---------------
+    Block Size                                                   512
+    Function Cache Configuration                     CachePreferNone
+    Grid Size                                                      1
+    Registers Per Thread             register/thread             112
+    Shared Memory Configuration Size           Kbyte           16,38
+    Driver Shared Memory Per Block       Kbyte/block            1,02
+    Dynamic Shared Memory Per Block       byte/block               0
+    Static Shared Memory Per Block       Kbyte/block           12,30
+    Threads                                   thread             512
+    Waves Per SM                                                0,06
+    -------------------------------- --------------- ---------------
+
+    WRN   The grid for this launch is configured to execute only 1 blocks, which is less than the GPU's 16              
+          multiprocessors. This can underutilize some multiprocessors. If you do not intend to execute this kernel      
+          concurrently with other workloads, consider reducing the block size to have at least one block per            
+          multiprocessor or increase the size of the grid to fully utilize the available hardware resources. See the    
+          Hardware Model (https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#metrics-hw-model)            
+          description for more details on launch configurations.                                                        
+
+    Section: Occupancy
+    ------------------------------- ----------- ------------
+    Metric Name                     Metric Unit Metric Value
+    ------------------------------- ----------- ------------
+    Block Limit SM                        block           16
+    Block Limit Registers                 block            1
+    Block Limit Shared Mem                block            1
+    Block Limit Warps                     block            3
+    Theoretical Active Warps per SM        warp           16
+    Theoretical Occupancy                     %        33,33
+    Achieved Occupancy                        %        33,33
+    Achieved Active Warps Per SM           warp        16,00
+    ------------------------------- ----------- ------------
+
+    WRN   This kernel's theoretical occupancy (33.3%) is limited by the number of required registers. This kernel's     
+          theoretical occupancy (33.3%) is limited by the required amount of shared memory. See the CUDA Best           
+          Practices Guide (https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#occupancy) for more      
+          details on optimizing occupancy.                                                                              
+
