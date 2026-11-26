@@ -123,11 +123,52 @@ __device__ void atualiza(const CamadaDev& c, const float* x, float taxa) {
     }
 }
 
-// Treino completo num único lançamento: <<<1, THREADS>>>.
+// Tamanho, em floats, da área de shared memory de uma camada: pesos, vieses,
+// z, a, delta (saídas) e grad (entradas).
+__host__ __device__ constexpr int floats_camada(int entradas, int saidas) {
+    return entradas * saidas + 4 * saidas + entradas;
+}
+
+// Copia uma camada da memória global para a shared memory do bloco e devolve
+// a visão da camada apontando para a shared memory. Só pesos e vieses têm
+// conteúdo relevante; os demais buffers são preenchidos durante o treino.
+__device__ CamadaDev para_shared(const CamadaDev& g, float* area) {
+    CamadaDev c = g;
+    const int n_pesos = g.entradas * g.saidas;
+    c.w = area;
+    c.b = c.w + n_pesos;
+    c.z = c.b + g.saidas;
+    c.a = c.z + g.saidas;
+    c.delta = c.a + g.saidas;
+    c.grad = c.delta + g.saidas;
+    for (int k = threadIdx.x; k < n_pesos; k += THREADS) c.w[k] = g.w[k];
+    for (int i = threadIdx.x; i < g.saidas; i += THREADS) c.b[i] = g.b[i];
+    return c;
+}
+
+// Devolve pesos e vieses treinados da shared memory para a memória global.
+__device__ void para_global(const CamadaDev& c, const CamadaDev& g) {
+    const int n_pesos = g.entradas * g.saidas;
+    for (int k = threadIdx.x; k < n_pesos; k += THREADS) g.w[k] = c.w[k];
+    for (int i = threadIdx.x; i < g.saidas; i += THREADS) g.b[i] = c.b[i];
+}
+
+// Treino completo num único lançamento: <<<1, THREADS>>>. Todos os
+// parâmetros e buffers da rede (~12 KB) ficam na shared memory do bloco
+// durante o treino inteiro; a memória global só é lida para as imagens.
 __global__ void __launch_bounds__(THREADS)
-k_treino(CamadaDev c1, CamadaDev c2, CamadaDev c3, const float* imagens,
+k_treino(CamadaDev g1, CamadaDev g2, CamadaDev g3, const float* imagens,
          const int* rotulos, int n, int epocas, float taxa, double* perdas) {
+    constexpr int f1 = floats_camada(Barenn::entradas, 32);
+    constexpr int f2 = floats_camada(32, 16);
+    constexpr int f3 = floats_camada(16, Barenn::classes);
+    __shared__ float area[f1 + f2 + f3];
     __shared__ float gradiente[Barenn::classes];
+    const CamadaDev c1 = para_shared(g1, area);
+    const CamadaDev c2 = para_shared(g2, area + f1);
+    const CamadaDev c3 = para_shared(g3, area + f1 + f2);
+    __syncthreads();
+
     for (int epoca = 0; epoca < epocas; ++epoca) {
         // Só a thread 0 acumula a perda da época, em double e na mesma
         // ordem da CPU (amostra por amostra).
@@ -179,6 +220,10 @@ k_treino(CamadaDev c1, CamadaDev c2, CamadaDev c3, const float* imagens,
             perdas[epoca] = perda_epoca;
         }
     }
+    // Os pesos treinados voltam para a memória global, de onde o host copia.
+    para_global(c1, g1);
+    para_global(c2, g2);
+    para_global(c3, g3);
 }
 
 // ---------------------------------------------------------------------------
